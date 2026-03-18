@@ -11,8 +11,18 @@ import {
   BarChart3,
 } from "lucide-react";
 
+// 1. 定義資料的 TypeScript 型別
+interface Project {
+  id: number;
+  name: string;
+  industry: string;
+  amount: number | null;
+  status: "已成交" | "簽約中" | "提案中";
+  tags: string[];
+}
+
 // 去識別化後的專案資料
-const initialProjects = [
+const initialProjects: Project[] = [
   {
     id: 1,
     name: "F精密製造",
@@ -57,7 +67,7 @@ const initialProjects = [
     id: 6,
     name: "E傳統產業",
     industry: "傳統製造",
-    amount: 250,
+    amount: 150,
     status: "已成交",
     tags: ["需求訪談", "系統架構展示"],
   },
@@ -96,7 +106,7 @@ const initialProjects = [
 ];
 
 export default function App() {
-  // 確保 Tailwind CSS 正常載入 (解決 CodeSandbox 等環境設定不完全導致的破圖問題)
+  // 確保 Tailwind CSS 正常載入
   useEffect(() => {
     if (!document.getElementById("tailwind-cdn")) {
       const script = document.createElement("script");
@@ -106,7 +116,7 @@ export default function App() {
     }
   }, []);
 
-  const [filter, setFilter] = useState("All");
+  const [filter, setFilter] = useState<string>("All");
 
   // 計算 KPI 數據
   const wonProjects = initialProjects.filter((p) => p.status === "已成交");
@@ -202,8 +212,9 @@ export default function App() {
               成交與推進中專案營收分佈
             </h2>
             <div className="space-y-4">
+              {/* 這裡確保了 TypeScript 編譯器知道 amount 不會是 null */}
               {[...wonProjects, ...signingProjects]
-                .sort((a, b) => b.amount - a.amount)
+                .sort((a, b) => (b.amount || 0) - (a.amount || 0))
                 .map((project) => (
                   <div key={project.id} className="relative">
                     <div className="flex justify-between text-sm mb-1">
@@ -226,7 +237,7 @@ export default function App() {
                         }`}
                         style={{
                           width: `${
-                            (project.amount / maxProjectAmount) * 100
+                            ((project.amount || 0) / maxProjectAmount) * 100
                           }%`,
                         }}
                       ></div>
@@ -244,14 +255,12 @@ export default function App() {
                 狀態分佈 (營收佔比)
               </h2>
               <div className="relative pt-4 pb-8 flex justify-center">
-                {/* 採用更穩定的 conic-gradient 繪製甜甜圈圖 */}
                 <div
                   className="w-48 h-48 rounded-full flex items-center justify-center relative shadow-sm"
                   style={{
                     background: `conic-gradient(#10b981 0% ${wonPercent}%, #fbbf24 ${wonPercent}% 100%)`,
                   }}
                 >
-                  {/* 內部挖空圓形 */}
                   <div className="text-center z-10 bg-white w-36 h-36 rounded-full flex flex-col items-center justify-center shadow-inner">
                     <span className="text-3xl font-bold text-slate-800">
                       {wonProjects.length + signingProjects.length}
@@ -299,7 +308,6 @@ export default function App() {
               專案參與明細與核心貢獻
             </h2>
 
-            {/* Filter Pills */}
             <div className="flex gap-2">
               {["All", "已成交", "簽約中", "提案中"].map((status) => (
                 <button
@@ -376,9 +384,19 @@ export default function App() {
   );
 }
 
-// Sub-components
-function KpiCard({ title, value, icon, subtitle, color }) {
-  const bgColors = {
+// 2. 幫 KpiCard 定義傳入參數的型別
+type ColorType = "emerald" | "amber" | "indigo" | "rose";
+
+interface KpiCardProps {
+  title: string;
+  value: string | number;
+  icon: React.ReactNode;
+  subtitle: string;
+  color: ColorType;
+}
+
+function KpiCard({ title, value, icon, subtitle, color }: KpiCardProps) {
+  const bgColors: Record<ColorType, string> = {
     emerald: "bg-emerald-50",
     amber: "bg-amber-50",
     indigo: "bg-indigo-50",
@@ -399,7 +417,8 @@ function KpiCard({ title, value, icon, subtitle, color }) {
   );
 }
 
-function StatusBadge({ status }) {
+// 3. 幫 StatusBadge 定義傳入參數的型別
+function StatusBadge({ status }: { status: string }) {
   if (status === "已成交") {
     return (
       <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 text-xs font-semibold border border-emerald-200">

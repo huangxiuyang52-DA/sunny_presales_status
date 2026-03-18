@@ -202,8 +202,9 @@ export default function App() {
               成交與推進中專案營收分佈
             </h2>
             <div className="space-y-4">
+              {/* 加入 || 0 讓 TypeScript 確保運算不會碰到 null */}
               {[...wonProjects, ...signingProjects]
-                .sort((a, b) => b.amount - a.amount)
+                .sort((a, b) => (b.amount || 0) - (a.amount || 0))
                 .map((project) => (
                   <div key={project.id} className="relative">
                     <div className="flex justify-between text-sm mb-1">
@@ -226,7 +227,7 @@ export default function App() {
                         }`}
                         style={{
                           width: `${
-                            (project.amount / maxProjectAmount) * 100
+                            ((project.amount || 0) / maxProjectAmount) * 100
                           }%`,
                         }}
                       ></div>
